@@ -3,18 +3,21 @@ package main
 import (
 	"log"
 
-	"github.com/Desiatiy10/todo-app/cmd/server"
 	"github.com/Desiatiy10/todo-app/internal/handler"
+	"github.com/Desiatiy10/todo-app/internal/repository"
+	"github.com/Desiatiy10/todo-app/internal/service"
+	"github.com/Desiatiy10/todo-app/server"
 )
 
 var port string = ":8080"
 
 func main() {
+	repo := repository.NewRepository()
+	srvc := service.NewService(repo)
+	handler := handler.NewHandler(srvc)
 	server := new(server.Server)
-
-	handlers := new(handler.Handler)
-
-	if err := server.Run(port, handlers.InitRoutes()); err != nil {
+	
+	if err := server.Run(port, handler.InitRoutes()); err != nil {
 		log.Fatalf("error running http server: %v", err)
 	}
 
