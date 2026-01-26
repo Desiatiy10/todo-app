@@ -7,20 +7,28 @@ import (
 	"github.com/Desiatiy10/todo-app/internal/repository"
 	"github.com/Desiatiy10/todo-app/internal/service"
 	"github.com/Desiatiy10/todo-app/server"
+	"github.com/spf13/viper"
 )
 
-var port string = ":8080"
-
 func main() {
+	if err := initConfig(); err != nil {
+		log.Fatalf("error initializing configs: %v", err)
+	}
+
 	repo := repository.NewRepository()
 	srvc := service.NewService(repo)
 	handler := handler.NewHandler(srvc)
 	server := new(server.Server)
-	
-	if err := server.Run(port, handler.InitRoutes()); err != nil {
+
+	if err := server.Run(viper.GetString("port"), handler.InitRoutes()); err != nil {
 		log.Fatalf("error running http server: %v", err)
 	}
 
-	log.Printf("Starting server on %s", port)
+	log.Printf("Starting server on %s", viper.GetString("port"))
+}
 
+func initConfig() error {
+	viper.AddConfigPath("configs")
+	viper.SetConfigName("config")
+	return viper.ReadInConfig()
 }
