@@ -1,11 +1,31 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
 
-func (h *Handler) signUp(ctx *gin.Context) {
+	"github.com/Desiatiy10/todo-app/models"
+	"github.com/gin-gonic/gin"
+)
 
+func (h *Handler) signUp(c *gin.Context) {
+	var input models.User
+
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	id, err := h.srvc.Authorization.CreateUser(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]any{
+		"id": id,
+	})
 }
 
-func (h *Handler) signIn(ctx *gin.Context) {
+func (h *Handler) signIn(c *gin.Context) {
 
 }
