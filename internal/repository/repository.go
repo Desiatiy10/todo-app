@@ -2,11 +2,13 @@ package repository
 
 import (
 	"github.com/Desiatiy10/todo-app/models"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type Authorization interface {
-	CreateUser(user models.User) (int, error)
+	CreateUser(user models.User) (uuid.UUID, error)
+	GetUserByUsername(username string) (models.User, error)
 }
 
 type TodoList interface {
