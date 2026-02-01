@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/Desiatiy10/todo-app/internal/handler"
 	"github.com/Desiatiy10/todo-app/internal/repository"
@@ -15,6 +19,9 @@ import (
 )
 
 func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
 	if err := initConfig(); err != nil {
@@ -22,7 +29,7 @@ func main() {
 	}
 
 	if err := godotenv.Load(); err != nil {
-		logrus.Fatalf("failed initializing env variables: %v", err)
+		logrus.Warn("env file not found, using sytem env")
 	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
@@ -37,16 +44,35 @@ func main() {
 		logrus.Fatalf("failed to initialize db: %v", err)
 	}
 
-	repo := repository.NewRepository(db)
-	srvc := service.NewService(repo)
-	handler := handler.NewHandler(srvc)
-	server := new(server.Server)
-
-	if err := server.Run(viper.GetString("port-app"), handler.InitRoutes()); err != nil {
-		logrus.Fatalf("error running http server: %v", err)
+	signingKey := viper.GetString("signingKey.key")
+	if signingKey == "" {
+		logrus.Fatal("signing key is not set")
 	}
 
-	logrus.Printf("Starting server on %s", viper.GetString("port"))
+	repo := repository.NewRepository(db)
+	srvc := service.NewService(repo, viper.GetString("signingKey.key"), viper.GetDuration("auth.tokenttl"))
+	handler := handler.NewHandler(srvc)
+
+	server := new(server.Server)
+
+	go func() {
+		logrus.Infof("Starting server on %s", viper.GetString("port-app"))
+		if err := server.Run(viper.GetString("port-app"), handler.InitRoutes()); err != nil {
+			logrus.Fatalf("error running http server: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quit
+	logrus.Info("Shutting down server...")
+
+	if err := server.Shutdown(ctx); err != nil {
+		logrus.Errorf("server shutdown failed: %v", err)
+	}
+
+	logrus.Info("Server exited properly")
 }
 
 func initConfig() error {

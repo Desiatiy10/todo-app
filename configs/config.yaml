@@ -6,3 +6,9 @@ db:
   user: "postgres"
   dbname: "postgres"
   sslmode: "disable"
+
+signingKey:
+  key: "SF?//DLNFKNR23E8DSFN12jhe211"
+
+auth:
+  tokenttl: 12h
