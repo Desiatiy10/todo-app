@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"time"
 
 	"github.com/Desiatiy10/todo-app/errs"
@@ -71,6 +72,29 @@ func (s *AuthService) SignIn(input models.SignInInput) (string, error) {
 	}
 
 	return token, nil
+}
+
+func (s *AuthService) ParseToken(accessToken string) (uuid.UUID, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+		return []byte(s.signingKey), nil
+	})
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if !token.Valid {
+		return uuid.Nil, errors.New("invalid token") 
+	}
+
+	claims, ok := token.Claims.(*tokenClaims)
+	if !ok {
+		return uuid.Nil, errors.New("token claims are not of type *tokenClaims")
+	}
+
+	return claims.UserID, nil
 }
 
 func (s *AuthService) generateToken(userID uuid.UUID) (string, error) {

@@ -58,7 +58,7 @@ func main() {
 	go func() {
 		logrus.Infof("Starting server on %s", viper.GetString("port-app"))
 		if err := server.Run(viper.GetString("port-app"), handler.InitRoutes()); err != nil {
-			logrus.Fatalf("error running http server: %v", err)
+			logrus.Infof("error running http server: %v", err)
 		}
 	}()
 
