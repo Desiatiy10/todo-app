@@ -1,4 +1,3 @@
-// models/user.go
 package models
 
 import "github.com/google/uuid"
