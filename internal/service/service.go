@@ -11,6 +11,7 @@ import (
 type Authorization interface {
 	SignUp(input models.SignUpInput) (uuid.UUID, error)
 	SignIn(input models.SignInInput) (string, error)
+	ParseToken(accessToken string) (uuid.UUID, error)
 }
 
 type TodoList interface {

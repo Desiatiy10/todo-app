@@ -26,8 +26,7 @@ func (p *AuthPostgres) CreateUser(user models.User) (uuid.UUID, error) {
 		user.ID = uuid.New()
 	}
 
-	query :=
-		`INSERT INTO users (id, name, username, password_hash) 
+	const query = `INSERT INTO users (id, name, username, password_hash) 
 		VALUES ($1, $2, $3, $4) 
 		RETURNING id`
 
@@ -43,8 +42,7 @@ func (p *AuthPostgres) CreateUser(user models.User) (uuid.UUID, error) {
 func (p *AuthPostgres) GetUserByUsername(username string) (models.User, error) {
 	var user models.User
 
-	query := `
-		SELECT id, name, username, password_hash 
+	const query = `SELECT id, name, username, password_hash 
 		FROM users 
 		WHERE username = $1`
 

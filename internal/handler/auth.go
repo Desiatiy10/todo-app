@@ -23,7 +23,7 @@ func (h *Handler) signUp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, map[string]any{
+	c.AbortWithStatusJSON(http.StatusCreated, gin.H{
 		"id": id,
 	})
 }
@@ -46,7 +46,7 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]any{
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{
 		"token": token,
 	})
 }
